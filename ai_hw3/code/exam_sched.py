@@ -108,44 +108,105 @@ class exam_sched(csp.CSP):
 
 
     # print("in constr")
+    # print(A)
+    # print(a)
+
+    # print(B)
+    # print(b)
 
     if a == b:  # two lessons can't have the same slots_per_day
-      print("case 1: simple slot conflict")
+      # print("case 1: simple slot conflict")
       return False
 
+    # if A or B is a lab, then for the constraints not to be violated, we must ensure that the previous slot 
+    # contains the theory part of the lab 
 
-    if 'LAB_' in A or 'LAB_' in B:
+    # βρες πιο απο τα Α,Β ειναι το lab
+    if 'LAB_' + A in self.lessons: # A is theory lesson that has lab
+      # f"{A} has lab"
+      if (b[0] == a[0]) and (b[1] == (a[1]+1)):  # b is the next slot of a
+        if B == 'LAB_' + A: # B is lab
+          return True 
+        else:
+          return False # keep this slot empty
 
-      print("case 2: at least one of the lessons is a lab")
-      print(A)
-      print(B)
+    if 'LAB_' + B in self.lessons: # B is theory lesson that has lab
+      # f"{B} has lab"
+      if (a[0] == b[0]) and (a[1] == (b[1]+1)):  # a is the next slot of a
+        if A == 'LAB_' + B: # A is lab
+          return True 
+        else:
+          return False # keep this slot empty
+    
+    # # we are dealing with a lab, and with a lessin with no lab
+    # if 'LAB'
 
-      # print('A = %s with a: \n') % (A)
-      f'A = {A} with a'
 
 
-      # check lab constraints first (A has lab and b is the lab or vice versa)
-      if ('LAB_' in B and ('LAB_' + A) != B) or ('LAB_' in A and ('LAB_' + B) != A):
+    # check the other constraints Now
+    # check hard lessons constraint (if both lessons are hard)
+    if self.lesson_to_difficulty[A] and self.lesson_to_difficulty[B]:
+      # print("case 3: both lessons hard")
+      if abs(a[0]-b[0]) < 2: # less than two days apart
         return False
-      else: 
-        return True
-    else:
-      # check hard lessons constraint (if both lessons are hard)
-      if self.lesson_to_difficulty[A] and self.lesson_to_difficulty[B]:
-        print("both lessons hard")
-        if abs(a[0]-b[0]) < 2: # less than two days apart
-          return False
 
-      # check semester constraint
-      if self.lesson_to_semester[A] == self.lesson_to_semester[B]:
-        if abs(a[0]-b[0]) == 0:   # exam on the same day
-          return False  
+    # check semester constraint
+    if self.lesson_to_semester[A] == self.lesson_to_semester[B]:
+      if abs(a[0]-b[0]) == 0:   # exam on the same day
+        # print("case 4: same semester - same day")
+        return False  
 
-      # check proffessor constraints
-      if self.lesson_to_proff[A] == self.lesson_to_proff[B]:
-        if abs(a[0]-b[0]) == 0:   # exam on the same day
-          return False  
+    # check proffessor constraints
+    if self.lesson_to_proff[A] == self.lesson_to_proff[B]:
+      if abs(a[0]-b[0]) == 0:   # exam on the same day
+        # print("case 5: same day - same proffessor")
+        return False  
+    # print("constraints OK")      
     return True
+
+
+
+    # probably nonsense
+
+
+    # if 'LAB' + B in self.lessons:
+    #   f"{B} has lab"
+
+    
+
+
+    # if 'LAB_' in B:
+
+    #   print("case 2: at least one of the lessons is a lab")
+
+  
+
+    #   # check lab constraints first (A has lab and b is the lab or vice versa)
+    #   if ('LAB_' in B and ('LAB_' + A) != B):
+    #     return False
+    #   else: 
+    #     print("constraints OK")
+    #     return True
+    # else:
+    #   # check hard lessons constraint (if both lessons are hard)
+    #   if self.lesson_to_difficulty[A] and self.lesson_to_difficulty[B]:
+    #     print("case 3: both lessons hard")
+    #     if abs(a[0]-b[0]) < 2: # less than two days apart
+    #       return False
+
+    #   # check semester constraint
+    #   if self.lesson_to_semester[A] == self.lesson_to_semester[B]:
+    #     if abs(a[0]-b[0]) == 0:   # exam on the same day
+    #       print("case 4: same semester - same day")
+    #       return False  
+
+    #   # check proffessor constraints
+    #   if self.lesson_to_proff[A] == self.lesson_to_proff[B]:
+    #     if abs(a[0]-b[0]) == 0:   # exam on the same day
+    #       print("case 5: same day - same proffessor")
+    #       return False  
+    # print("constraints OK")      
+    # return True
 
 
 
@@ -174,10 +235,12 @@ if __name__ == '__main__':
     # Solution with backtracking
     print("BT")
     start = time.time()
-    bt_result = csp.backtracking_search(bt_examsched, inference = csp.forward_checking)
+    bt_result = csp.backtracking_search(bt_examsched, inference=csp.forward_checking)
     end = time.time()
     print("Time elapsed: %.5f" % (end - start))
-    print("Assignments", bt_examsched.nassigns)
+    print("Assignments: ", bt_examsched.nassigns)
+    print("variables: ", bt_examsched.variables)
+    # print("constraint checks: ", bt_examsched.conflicted_vars)
     bt_examsched.display(bt_result)
     print("-----------------------------------")
 
