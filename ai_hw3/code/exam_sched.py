@@ -26,7 +26,7 @@ class exam_sched(csp.CSP):
     slots = []
     for i in range(1,days+1):
       for j in range(1,slots_per_day+1):
-          slots.append([i,j])
+          slots.append((i,j))
 
     for row in rows:
       self.semester.append(int(row[0]))
@@ -74,11 +74,9 @@ class exam_sched(csp.CSP):
     # create an empty dict
     self.var_domains = {}
     for lesson in self.lessons:
-      print(lesson)
 
       lab_lesson = 'LAB_' + lesson
       if lab_lesson in self.lessons:
-        print("has lab")
         self.var_domains[lesson] = lab_exists
       else: 
         # check if we are dealing with a lab 
@@ -159,18 +157,97 @@ if __name__ == '__main__':
     file = sys.argv[3]
 
     print("creating a new class instance")
-    bt_examsched = exam_sched(days, slots_per_day, file)
+    c1 = exam_sched(days, slots_per_day, file)
 
     
-    # Solution with backtracking
-    print("BT")
+    # Solution with simple backtracking
+    print("simple BT")
     start = time.time()
-    bt_result = csp.backtracking_search(bt_examsched, inference=csp.forward_checking)
+    bt_result = csp.backtracking_search(c1)
     end = time.time()
     print("Time elapsed: %.5f" % (end - start))
-    print("Assignments: ", bt_examsched.nassigns)
-    print("variables: ", bt_examsched.variables)
+    print("Assignments: ", c1.nassigns)
+    # print("variables: ", c1.variables)
     # print("constraint checks: ", bt_examsched.conflicted_vars)
-    bt_examsched.display(bt_result)
+    c1.display(bt_result)
+
+    for day in range(1,days+1):
+      print("\t\t\t-------------------------\t")
+      print("\t\t\t|\tday: ", day,"\t|")
+      print("\t\t\t-------------------------\t")
+      for slot in range(1,slots_per_day+1):
+        t = (day,slot)
+        for lesson, assignment in bt_result.items():
+          if t == assignment:
+            print(t, ": ", lesson)
+
+
+
+
+
     print("-----------------------------------")
 
+
+    quit()
+
+    # Solution with simple backtracking
+    print("creating a new class instance")
+    c2 = exam_sched(days, slots_per_day, file)
+
+    print("BT with MRV, LCV and forward checking")
+    start = time.time()
+    bt_result = csp.backtracking_search(c2,  select_unassigned_variable=csp.mrv, order_domain_values=csp.lcv, inference=csp.forward_checking)
+    end = time.time()
+    print("Time elapsed: %.5f" % (end - start))
+    print("Assignments: ", c2.nassigns)
+    # print("variables: ", c2.variables)
+    # print("constraint checks: ", bt_examsched.conflicted_vars)
+    c2.display(bt_result)
+    print("-----------------------------------")
+
+    for day in range(1,days+1):
+      print("\t\t\t------------------\t\t\t")
+      print("\t\t\t|\tday: ", day,"\t|")
+      print("\t\t\t------------------\t\t\t")
+      for slot in range(1,slots_per_day+1):
+        t = (day,slot)
+        for lesson, assignment in bt_result.items():
+          if t == assignment:
+            print(t, ": ", lesson)
+
+
+
+    quit()
+
+    print("creating a new class instance")
+    c3 = exam_sched(days, slots_per_day, file)
+
+    # Solution with simple backtracking
+    print("BT with MRV and MAC")
+    start = time.time()
+    bt_result = csp.backtracking_search(c3, select_unassigned_variable=csp.mrv, inference=csp.mac)
+    end = time.time()
+    print("Time elapsed: %.5f" % (end - start))
+    print("Assignments: ", c3.nassigns)
+    # print("variables: ", c3.variables)
+    # print("constraint checks: ", bt_examsched.conflicted_vars)
+    c3.display(bt_result)
+    print("-----------------------------------")
+
+
+    print("creating a new class instance")
+    c4 = exam_sched(days, slots_per_day, file)
+
+    print("BT with MRV, LCV and MINCONFLICTS")
+    start = time.time()
+    bt_result = csp.min_conflicts(c4)
+    end = time.time()
+    print("Time elapsed: %.5f" % (end - start))
+    print("Assignments: ", c4.nassigns)
+    # print("variables: ", c4.variables)
+    # print("constraint checks: ", bt_examsched.conflicted_vars)
+    c4.display(bt_result)
+    print("-----------------------------------")
+
+
+    quit()
