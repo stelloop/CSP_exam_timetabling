@@ -363,7 +363,7 @@ def mrv(assignment, csp):
                              key=lambda var: num_legal_values(csp, var, assignment))
 
 def domwdeg(assignment, csp):
-    # dom/wdeg, var
+    # (dom/wdeg, var)
     min_var =  (float('inf'), None)
 
     for var in csp.variables:
@@ -375,6 +375,7 @@ def domwdeg(assignment, csp):
                 # both var and its neighbors have not gotten a value yet
                 wdeg = 1
                 if neighbor not in assignment:
+                    # weight of (A,B) and (B,A) is the same
                     if (var,neighbor) in csp.weights.keys():
                         wdeg = csp.weights[(var,neighbor)]
                     else: 
