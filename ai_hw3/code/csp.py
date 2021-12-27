@@ -60,6 +60,17 @@ class CSP(search.Problem):
         self.curr_domains = None
         self.nassigns = 0
 
+        # needed for dom/wdeg
+        # dict (Xi,Xj) -> weight
+        self.weights = {}
+        for var in self.variables:
+            for neig in self.variables:
+                if var != neig:
+                    self.weights[(var, neig)] = 1
+
+
+
+
     def assign(self, var, val, assignment):
         """Add {var: val} to assignment; Discard the old value if any."""
         assignment[var] = val
@@ -350,6 +361,30 @@ def mrv(assignment, csp):
     """Minimum-remaining-values heuristic."""
     return argmin_random_tie([v for v in csp.variables if v not in assignment],
                              key=lambda var: num_legal_values(csp, var, assignment))
+
+def domwdeg(assignment, csp):
+    # dom/wdeg, var
+    min_var =  (float('inf'), None)
+
+    for var in csp.variables:
+      # var hasn't gotten a value yet
+        if var not in assignment:  
+            curr_domain = len(csp.choices(var))
+            for neighbor in csp.neighbors[var]:
+                print(neighbor)
+                # both var and its neighbors have not gotten a value yet
+                wdeg = 1
+                if neighbor not in assignment:
+                    if (var,neighbor) in csp.weights.keys():
+                        wdeg = csp.weights[(var,neighbor)]
+                    else: 
+                        wdeg = csp.weights[(neighbor,var)]
+
+                if curr_domain/wdeg < min_var[0]:
+                    min_var = (curr_domain/wdeg, var)
+
+    return min_var[1]  
+
 
 
 def num_legal_values(csp, var, assignment):
