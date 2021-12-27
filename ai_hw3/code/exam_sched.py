@@ -42,15 +42,22 @@ class exam_sched(csp.CSP):
         self.lessons.append(new_lesson)
         self.proffesors.append(row[2]) # lab has the same proffessor
         self.semester.append(int(row[0])) # the same semester
-        if row[3] == 'FALSE':     # and the same difficulty too
-          self.difficulty.append(False)
-        else:
-          self.difficulty.append(True)
+        self.difficulty.append(False)
+        # if row[3] == 'FALSE':     # and the same difficulty too
+        #   self.difficulty.append(False)
+        # else:
+        #   self.difficulty.append(True)
 
   # create dicts
     self.lesson_to_semester = dict(zip(self.lessons,self.semester))
     self.lesson_to_proff = dict(zip(self.lessons,self.proffesors))
     self.lesson_to_difficulty = dict(zip(self.lessons, self.difficulty))
+
+
+    # print(self.lesson_to_semester)
+    # print(self.lesson_to_proff)
+    # print(self.lesson_to_difficulty)
+
 
 
     # create the list of slots for each case
@@ -70,6 +77,7 @@ class exam_sched(csp.CSP):
         is_lab.append(slot)
 
 
+    print("initializing domains")
         # create the domains of each var.
     # create an empty dict
     self.var_domains = {}
@@ -78,10 +86,12 @@ class exam_sched(csp.CSP):
       lab_lesson = 'LAB_' + lesson
       if lab_lesson in self.lessons:
         self.var_domains[lesson] = lab_exists
+        print("theory w/ lab lesson: ", lesson)
       else: 
         # check if we are dealing with a lab 
           if 'LAB_' in lesson:
             self.var_domains[lesson] = is_lab
+            print("lab lesson: ", lesson)
           else:
             self.var_domains[lesson] = lab_not_exists
 
@@ -99,6 +109,9 @@ class exam_sched(csp.CSP):
 
 
   def constraints(self, A, a, B, b):
+    # print("\n")
+    # print(A ,"with slot: ", a)
+    # print(B ,"with slot: ", b)
 
     if a == b:  # two lessons can't have the same slots_per_day
       # print("case 1: simple slot conflict")
@@ -108,21 +121,24 @@ class exam_sched(csp.CSP):
     # contains the theory part of the lab 
 
     if 'LAB_' + A in self.lessons: # A is theory lesson that has lab
-      # f"{A} has lab"
-      if (b[0] == a[0]) and (b[1] == (a[1]+1)):  # b is the next slot of a
-        if B == 'LAB_' + A: # B is lab
-          return True 
+      if B == 'LAB_' + A: # B is lab
+        if (b[0] == a[0]) and (b[1] == (a[1]+1)):
+          return True
         else:
+          # print("tried to assign asxeto after theory-lab lesson")
           return False # keep this slot empty
 
+
+
     if 'LAB_' + B in self.lessons: # B is theory lesson that has lab
-      # f"{B} has lab"
-      if (a[0] == b[0]) and (a[1] == (b[1]+1)):  # a is the next slot of a
-        if A == 'LAB_' + B: # A is lab
-          return True 
-        else:
-          return False # keep this slot empty
-    
+        if A == 'LAB_' + B: # B is lab
+          if (a[0] == b[0]) and (a[1] == (b[1]+1)):
+            return True
+          else:
+            # print("tried to assign asxeto after theory-lab lesson")
+            return False # keep this slot empty
+
+
 
     # check the other constraints Now
     # check hard lessons constraint (if both lessons are hard)
@@ -188,9 +204,8 @@ if __name__ == '__main__':
     print("-----------------------------------")
 
 
-    quit()
+    # quit()
 
-    # Solution with simple backtracking
     print("creating a new class instance")
     c2 = exam_sched(days, slots_per_day, file)
 
@@ -206,18 +221,19 @@ if __name__ == '__main__':
     print("-----------------------------------")
 
     for day in range(1,days+1):
-      print("\t\t\t------------------\t\t\t")
-      print("\t\t\t|\tday: ", day,"\t|")
-      print("\t\t\t------------------\t\t\t")
+      print("\t\t\t------------------\t")
+      print("\t\t\t|\tday: ", day,"|")
+      print("\t\t\t------------------\t")
       for slot in range(1,slots_per_day+1):
         t = (day,slot)
         for lesson, assignment in bt_result.items():
           if t == assignment:
-            print(t, ": ", lesson)
+            if c2.lesson_to_difficulty[lesson]:
+              print(t, ": ", lesson, "HARD")
+            else:
+              print(t, ": ", lesson)      
 
-
-
-    quit()
+    # quit()
 
     print("creating a new class instance")
     c3 = exam_sched(days, slots_per_day, file)
@@ -233,6 +249,20 @@ if __name__ == '__main__':
     # print("constraint checks: ", bt_examsched.conflicted_vars)
     c3.display(bt_result)
     print("-----------------------------------")
+    for day in range(1,days+1):
+      print("\t\t\t------------------\t\t\t")
+      print("\t\t\t|\tday: ", day,"\t|")
+      print("\t\t\t------------------\t\t\t")
+      for slot in range(1,slots_per_day+1):
+        t = (day,slot)
+        for lesson, assignment in bt_result.items():
+          if t == assignment:
+            if c3.lesson_to_difficulty[lesson]:
+              print(t, ": ", lesson, "HARD")
+            else:
+              print(t, ": ", lesson)  
+
+    # quit()
 
 
     print("creating a new class instance")
@@ -247,7 +277,22 @@ if __name__ == '__main__':
     # print("variables: ", c4.variables)
     # print("constraint checks: ", bt_examsched.conflicted_vars)
     c4.display(bt_result)
+
     print("-----------------------------------")
+
+    for day in range(1,days+1):
+      print("\t\t\t------------------\t\t\t")
+      print("\t\t\t|\tday: ", day,"\t|")
+      print("\t\t\t------------------\t\t\t")
+      for slot in range(1,slots_per_day+1):
+        t = (day,slot)
+        for lesson, assignment in bt_result.items():
+          if t == assignment:
+            if c4.lesson_to_difficulty[lesson]:
+              print(t, ": ", lesson, "HARD")
+            else:
+              print(t, ": ", lesson)  
+
 
 
     quit()
