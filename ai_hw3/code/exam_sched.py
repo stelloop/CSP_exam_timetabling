@@ -100,9 +100,7 @@ class exam_sched(csp.CSP):
         self.constraint_checks += 1
 
         # two lessons can't have the same slots_per_day
-        if a == b:  
-            prev = self.weights[(A,B)] # needed for dom/wdeg 
-            self.weights[(A,B)] = prev + 1
+        if a == b: 
             return False
 
         # if A or B is a lab, then for the constraints not to be violated, we must ensure that the previous slot 
@@ -112,8 +110,6 @@ class exam_sched(csp.CSP):
                 if (b[0] == a[0]) and (b[1] == (a[1]+1)): # lab is right after theory
                     return True
                 else:
-                    prev = self.weights[(A,B)] 
-                    self.weights[(A,B)] = prev + 1
                     return False # keep this slot empty
 
 
@@ -123,29 +119,21 @@ class exam_sched(csp.CSP):
                 if (a[0] == b[0]) and (a[1] == (b[1]+1)):
                     return True
                 else:
-                    prev = self.weights[(A,B)] 
-                    self.weights[(A,B)] = prev + 1
                     return False # keep this slot empty
 
         # check hard lessons constraint (if both lessons are hard)
         if self.lesson_to_difficulty[A] and self.lesson_to_difficulty[B]:
             if abs(a[0]-b[0]) < 2: # less than two days apart
-                prev = self.weights[(A,B)] 
-                self.weights[(A,B)] = prev + 1
                 return False
 
         # check semester constraint
         if self.lesson_to_semester[A] == self.lesson_to_semester[B]:
             if abs(a[0]-b[0]) == 0:   # exam on the same day
-                prev = self.weights[(A,B)] 
-                self.weights[(A,B)] = prev + 1
                 return False  
 
         # check proffessor constraints
         if self.lesson_to_proff[A] == self.lesson_to_proff[B]:
             if abs(a[0]-b[0]) == 0:   # exam on the same day
-                prev = self.weights[(A,B)] 
-                self.weights[(A,B)] = prev + 1
                 return False  
         return True # none of the constraints were violated
 
@@ -170,7 +158,7 @@ if __name__ == '__main__':
     res = None
     if algo == 'fc':
         if heur == 'domwdeg':
-            print("backtracking with dom/wdeg and MAC")
+            print("backtracking with dom/wdeg and FC")
             start = time.time()
             res = csp.backtracking_search(c1, select_unassigned_variable=csp.domwdeg,order_domain_values=csp.lcv,inference=csp.forward_checking)
             end = time.time()
@@ -178,7 +166,7 @@ if __name__ == '__main__':
             print("Assignments: ", c1.nassigns)
             print("Constraint checks: ", c1.constraint_checks)
         elif heur == 'mrv':
-            print("backtracking with MRV and MAC")
+            print("backtracking with MRV and FC")
             start = time.time()
             res = csp.backtracking_search(c1, select_unassigned_variable=csp.mrv,order_domain_values=csp.lcv,inference=csp.forward_checking)
             end = time.time()
@@ -199,7 +187,7 @@ if __name__ == '__main__':
             print("Assignments: ", c1.nassigns)
             print("Constraint checks: ", c1.constraint_checks)
         elif heur == 'mrv':
-            print("backtracking with MRV and FC")
+            print("backtracking with MRV and MAC")
             start = time.time()
             res = csp.backtracking_search(c1, select_unassigned_variable=csp.mrv,order_domain_values=csp.lcv,inference=csp.mac)
             end = time.time()

@@ -213,6 +213,11 @@ def revise(csp, Xi, Xj, removals, checks=0):
         if conflict:
             csp.prune(Xi, x, removals)
             revised = True
+    
+    # for dom/wdeg
+    if not csp.curr_domains[Xi]: # domain wipeout
+        csp.weights[(Xi,Xj)] += 1
+        # print("domain wipeout")
     return revised, checks
 
 
@@ -231,7 +236,11 @@ def AC3b(csp, queue=None, removals=None, arc_heuristic=dom_j_up):
         # Sj_p values are all known to be supported by Xi
         # Dj - Sj_p = Sj_u values are unknown, as yet, to be supported by Xi
         Si_p, Sj_p, Sj_u, checks = partition(csp, Xi, Xj, checks)
+        # update weights for dom/wdeg
         if not Si_p:
+            # print("here")
+            csp.weights[(Xi,Xj)] += 1
+            csp.weights[(Xj,Xi)] += 1
             return False, checks  # CSP is inconsistent
         revised = False
         for x in set(csp.curr_domains[Xi]) - Si_p:
@@ -371,18 +380,18 @@ def domwdeg(assignment, csp):
         if var not in assignment:  
             curr_domain = len(csp.choices(var))
             for neighbor in csp.neighbors[var]:
-                print(neighbor)
                 # both var and its neighbors have not gotten a value yet
                 wdeg = 1
                 if neighbor not in assignment:
                     # weight of (A,B) and (B,A) is the same
                     if (var,neighbor) in csp.weights.keys():
-                        wdeg = csp.weights[(var,neighbor)]
+                        wdeg += csp.weights[(var,neighbor)]
                     else: 
-                        wdeg = csp.weights[(neighbor,var)]
-
-                if curr_domain/wdeg < min_var[0]:
-                    min_var = (curr_domain/wdeg, var)
+                        wdeg += csp.weights[(neighbor,var)]
+                
+                value = curr_domain/wdeg 
+                if value < min_var[0]:
+                    min_var = (value, var)
 
     return min_var[1]  
 
@@ -423,7 +432,9 @@ def forward_checking(csp, var, value, assignment, removals):
             for b in csp.curr_domains[B][:]:
                 if not csp.constraints(var, value, B, b):
                     csp.prune(B, b, removals)
-            if not csp.curr_domains[B]:
+            if not csp.curr_domains[B]: # domain wipeout
+                # print("domain wipeout")
+                csp.weights[(B,var)] += 1
                 return False
     return True
 
