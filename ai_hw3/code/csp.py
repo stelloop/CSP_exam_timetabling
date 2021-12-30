@@ -216,7 +216,10 @@ def revise(csp, Xi, Xj, removals, checks=0):
     
     # for dom/wdeg
     if not csp.curr_domains[Xi]: # domain wipeout
-        csp.weights[(Xi,Xj)] += 1
+        tup = (Xi,Xj)
+        if tup not in csp.weights.keys():
+            tup = (Xj,Xi)
+        csp.weights[tup] += 1
         # print("domain wipeout")
     return revised, checks
 
@@ -434,12 +437,15 @@ def forward_checking(csp, var, value, assignment, removals):
                     csp.prune(B, b, removals)
             if not csp.curr_domains[B]: # domain wipeout
                 # print("domain wipeout")
-                csp.weights[(B,var)] += 1
+                tup = (B,var)
+                if tup not in csp.weights.keys():
+                    tup = (var,B)
+                csp.weights[tup] += 1
                 return False
     return True
 
 
-def mac(csp, var, value, assignment, removals, constraint_propagation=AC3b):
+def mac(csp, var, value, assignment, removals, constraint_propagation=AC3):
     """Maintain arc consistency."""
     return constraint_propagation(csp, {(X, var) for X in csp.neighbors[var]}, removals)
 
