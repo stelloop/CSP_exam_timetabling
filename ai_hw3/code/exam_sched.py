@@ -20,10 +20,6 @@ class exam_sched(csp.CSP):
         self.proffesors = []
         self.difficulty = []
 
-
-
-
-
         for row in rows:
             self.semester.append(int(row[0]))
             self.variables.append(row[1])
@@ -210,6 +206,8 @@ if __name__ == '__main__':
         print(algo, " is not an acceptable argument. Please give correct arguments!")
         print ("usage: python3 exam_sched.py <days> <slots_per_day> <input file> <fc or mac or min-conflicts> <mrv or domwdeg>\n")
         quit()
+
+    # pretty printing
     for day in range(1,days+1):
       print("\t\t\t-------------------------\t")
       print("\t\t\t|\tday: ", day,"\t|")
